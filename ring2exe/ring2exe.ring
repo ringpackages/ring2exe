@@ -121,9 +121,9 @@ func Main
 		BuildApp(cFile,aOptions)
 	else 
 		drawline()
-		see "Application : Ring2EXE (Ring script to Executable file)" + nl
-		see "Author      : 2017-2019, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
-		see "Usage       : ring2exe filename.ring [Options]" + nl
+		see "Ring2EXE (Convert Ring Application To Executable File)" + nl
+		see "2017-2019, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
+		see "Usage : ring2exe filename.ring [Options]" + nl
 		drawline()
 	ok
 
@@ -631,6 +631,13 @@ func DistributeForMobileQt cBaseFolder,cFileName,aOptions
 		OSDeleteFile("main.cpp")
 		OSCopyFile(cMainFile)
 	ok
+	msg("Copy Android folder for setting the application icon...")
+	if isWindows()
+		OSCopyFolder(exefolder() + "..\android\ringqt\project\","android" )
+	else
+		OSCopyFolder(exefolder() + "../android/ringqt/project/","android" )
+	ok
+
 
 
 func CheckQtResourceFile cBaseFolder,cFileName,aOptions
