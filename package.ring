@@ -5,11 +5,11 @@ aPackageInfo = [
 	:developer = "Mahmoud Fayed",
 	:email = "msfclipper@yahoo.com",
 	:license = "MIT License",
-	:version = "1.0.4",
+	:version = "1.0.5",
 	:ringversion = "1.13",
 	:versions = 	[
 		[
-			:version = "1.0.4",
+			:version = "1.0.5",
 			:branch = "master"
 		]
 	],
@@ -35,7 +35,11 @@ aPackageInfo = [
 		"tools/ring2exe/ring2exe.ring",
 		"tools/ring2exe/test.ring",
 		"tools/ring2exe/test2.ring",
-		"tools/ring2exe/test3.ring"
+		"tools/ring2exe/test3.ring",
+		"tools/folder2qrc/build.bat",
+		"tools/folder2qrc/build.sh",
+		"tools/folder2qrc/folder2qrc.ring",
+		"tools/folder2qrc/README.md"
 	],
 	:windowsfiles = 	[
 
