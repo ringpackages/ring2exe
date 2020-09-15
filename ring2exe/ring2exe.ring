@@ -54,6 +54,7 @@
 		-dist	    	 : Prepare application for distribution 
 		-allruntime 	 : Include all libraries in distribution
 		-mobileqt	 : Prepare Qt Project to distribute Ring Application for Mobile 
+		-webassemblyqt	 : Prepare Qt Project to distribute Ring Application for Web using WebAssembly 
 		-noqt	    	 : Remove RingQt from distribution
 		-noallegro 	 : Remove RingAllegro from distribution
 		-noopenssl  	 : Remove RingOpenSSL from distribution
@@ -92,7 +93,7 @@ load "stdlibcore.ring"
 	LoadLibrariesInfo()
 
 func LoadLibrariesInfo
-	aLibsFiles = ListAllFiles(exefolder()+"/../ring2exe/libs","ring")
+	aLibsFiles = ListAllFiles(exefolder()+"/../tools/ring2exe/libs","ring")
 	for cLibFile in aLibsFiles 
 		eval(read(cLibFile))
 		aLibsInfo + aLibrary 
@@ -252,9 +253,9 @@ func GenerateBatchGeneral aPara,aOptions
 	cFileName = aPara[:file]
 	cFile = substr(cFileName," ","_")
 	# Generate Windows Batch (Visual C/C++)
-		cCode = "call "+exefolder()+"../src/locatevc.bat" + nl +
+		cCode = "call "+exefolder()+"../language/src/locatevc.bat" + nl +
 			"#{f3}" + nl +
-			'cl #{f1}.c #{f2} #{f4} -I"#{f6}..\include" -I"#{f6}../src/" /link #{f5} /OUT:#{f1}.exe' 
+			'cl #{f1}.c #{f2} #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5} /OUT:#{f1}.exe' 
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:windows])
 		# Resource File 
@@ -276,14 +277,14 @@ func GenerateBatchGeneral aPara,aOptions
 		cWindowsBatch = cFile+"_buildvc.bat"
 		write(cWindowsBatch,cCode)
 	# Generate Linux Script (GNU C/C++)
-		cCode = 'gcc -rdynamic #{f1}.c -o #{f1} #{f2} -lm -ldl  -I #{f3}/../include  '
+		cCode = 'gcc -rdynamic #{f1}.c -o #{f1} #{f2} -lm -ldl  -I #{f3}/../language/include  '
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:linux])
 		cCode = substr(cCode,"#{f3}",exefolder())
 		cLinuxBatch = cFile+"_buildgcc.sh"
 		write(cLinuxBatch,cCode)
 	# Generate MacOS X Script (CLang C/C++)
-		cCode = 'clang #{f1}.c #{f2} -o #{f1} -lm -ldl  -I #{f3}/../include  '
+		cCode = 'clang #{f1}.c #{f2} -o #{f1} -lm -ldl  -I #{f3}/../language/include  '
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:macosx])
 		cCode = substr(cCode,"#{f3}",exefolder())
@@ -308,29 +309,31 @@ func ClearTempFiles nPara
 		cTempFile += "2"
 	ok
 	if isWindows()
-		systemSilent(exefolder()+"/../ring2exe/"+cTempFile+".bat")
+		systemSilent(exefolder()+"/../tools/ring2exe/"+cTempFile+".bat")
 	else
-		systemSilent(exefolder()+"/../ring2exe/"+cTempFile+".sh")
+		systemSilent(exefolder()+"/../tools/ring2exe/"+cTempFile+".sh")
 	ok
 
 
 func Distribute cFileName,aOptions
 	cBaseFolder = currentdir()
 	OSCreateOpenFolder(:target)
-	cDir = currentdir()
-	if isWindows()
+	if find(aOptions,"-mobileqt")
+		# Prepare Application for Mobile (RingQt)
+		DistributeForMobileQt(cBaseFolder,cFileName,aOptions)
+	but find(aOptions,"-webassemblyqt")
+		# Prepare Application for WebAssembly (RingQt)
+		DistributeForWebAssemblyQt(cBaseFolder,cFileName,aOptions)
+	but isWindows()
 		DistributeForWindows(cBaseFolder,cFileName,aOptions)
 	but isLinux()
 		DistributeForLinux(cBaseFolder,cFileName,aOptions)
 	but isMacOSX()
 		DistributeForMacOSX(cBaseFolder,cFileName,aOptions)
 	ok
-	if currentdir() != cDir
-	 	chdir(cDir)
-	ok
-	# Prepare Application for Mobile (RingQt)
-		if find(aOptions,"-mobileqt")
-			DistributeForMobileQt(cBaseFolder,cFileName,aOptions)
+	# Delete the executable file
+		if isWindows()
+			OSDeleteFile(cBaseFolder+"\"+cFileName+".exe")
 		ok
 	chdir(cBaseFolder)
 
@@ -383,6 +386,8 @@ func DistributeForWindows cBaseFolder,cFileName,aOptions
 				ok
 			next 				
 		ok
+	# Copy Files (Images, etc) in Resources File
+		CheckQtResourceFile(cBaseFolder,cFileName,aOptions)
 
 func DistributeForLinux cBaseFolder,cFileName,aOptions
 	# Delete Files 
@@ -399,6 +404,8 @@ func DistributeForLinux cBaseFolder,cFileName,aOptions
 		msg("Copy the executable file to target/linux/bin")
 		OSCopyFile(cBaseFolder+"/"+cFileName)
 		CheckNoCCompiler(cBaseFolder,cFileName)
+	# Copy Files (Images, etc) in Resources File
+		CheckQtResourceFile(cBaseFolder,cFileName,aOptions)
 	chdir(cDir)
 	OSCreateOpenFolder(:lib)
 	cInstallUbuntu = "sudo apt-get install"
@@ -546,6 +553,8 @@ func DistributeForMacOSX cBaseFolder,cFileName,aOptions
 		msg("Copy the executable file to target/macosx/bin")
 		OSCopyFile(cBaseFolder+"/"+cFileName)
 		CheckNoCCompiler(cBaseFolder,cFileName)
+	# Copy Files (Images, etc) in Resources File
+		CheckQtResourceFile(cBaseFolder,cFileName,aOptions)
 	chdir(cDir)
 	OSCreateOpenFolder(:lib)
 	cInstallmacosx = "brew install -k"
@@ -613,7 +622,7 @@ func DistributeForMobileQt cBaseFolder,cFileName,aOptions
 	OSCreateOpenFolder(:mobile)
 	OSCreateOpenFolder(:qtproject)
 	msg("Copy RingQt for Mobile project files...")
-	OSCopyFile(exefolder() + "../android/ringqt/project/*.*" )
+	OSCopyFile(exefolder() + "../extensions/android/ringqt/project/*.*" )
 	OSDeleteFile("project.pro.user")
 	msg("Prepare the Ring Object (*.ringo) file...")
 	OSDeleteFile("ringapp.ring")
@@ -631,20 +640,56 @@ func DistributeForMobileQt cBaseFolder,cFileName,aOptions
 		OSDeleteFile("main.cpp")
 		OSCopyFile(cMainFile)
 	ok
-	msg("Copy Android folder for setting the application icon...")
+	msg("Copy Android, Ring and RingQt folders...")
 	if isWindows()
-		OSCopyFolder(exefolder() + "..\android\ringqt\project\","android" )
+		OSCopyFolder(exefolder() + "..\extensions\android\ringqt\project\","android" )
+		OSCopyFolder(exefolder() + "..\extensions\android\ringqt\project\","ring" )
+		OSCopyFolder(exefolder() + "..\extensions\android\ringqt\project\","ringqt" )
 	else
-		OSCopyFolder(exefolder() + "../android/ringqt/project/","android" )
+		OSCopyFolder(exefolder() + "../extensions/android/ringqt/project/","android" )
+		OSCopyFolder(exefolder() + "../extensions/android/ringqt/project/","ring" )
+		OSCopyFolder(exefolder() + "../extensions/android/ringqt/project/","ringqt" )
 	ok
 
-
+func DistributeForWebAssemblyQt cBaseFolder,cFileName,aOptions
+	msg("Prepare RingQt project to distribute for Web (WebAssembly)")
+	# Delete Files 
+		OSDeleteFolder(:webassembly)
+	OSCreateOpenFolder(:webassembly)
+	OSCreateOpenFolder(:qtproject)
+	msg("Copy RingQt for WebAssembly project files...")
+	OSCopyFile(exefolder() + "../extensions/webassembly/ringqt/project/*.*" )
+	OSDeleteFile("project.pro.user")
+	msg("Prepare the Ring Object (*.ringo) file...")
+	OSDeleteFile("ringapp.ring")
+	OSDeleteFile("ringapp.ringo")
+	cRINGOFile = cBaseFolder+"/"+cFileName+".ringo"
+	msg("Get the Ring Object File")
+	OSCopyFile(cRINGOFile)
+	write("main.cpp",substr(read("main.cpp"),"ringapp.ringo",cFileName+".ringo"))
+	write("project.qrc",substr(read("project.qrc"),"ringapp.ringo",cFileName+".ringo"))
+	CheckQtResourceFile(cBaseFolder,cFileName,aOptions)
+	cMainFile = cBaseFolder+"/"+"main.cpp"
+	if fexists(cMainFile)
+		msg("We have the Main File : " + cMainFile)
+		msg("Copy the Main file to target/webassembly/qtproject")
+		OSDeleteFile("main.cpp")
+		OSCopyFile(cMainFile)
+	ok
+	msg("Copy Ring and RingQt folders...")
+	if isWindows()
+		OSCopyFolder(exefolder() + "..\extensions\webassembly\ringqt\project\","ring" )
+		OSCopyFolder(exefolder() + "..\extensions\webassembly\ringqt\project\","ringqt" )
+	else
+		OSCopyFolder(exefolder() + "../extensions/webassembly/ringqt/project/","ring" )
+		OSCopyFolder(exefolder() + "../extensions/webassembly/ringqt/project/","ringqt" )
+	ok
 
 func CheckQtResourceFile cBaseFolder,cFileName,aOptions
 	cResourceFile = cBaseFolder+"/"+"project.qrc"
 	if fexists(cResourceFile)
 		msg("We have Qt Resource File : " + cResourceFile)
-		msg("Copy the resource file to target/mobile/qtproject")
+		msg("Copy the resource file to the Qt project folder")
 		OSDeleteFile("project.qrc")
 		OSCopyFile(cResourceFile)
 		msg("Copy files added to the Resource file")
