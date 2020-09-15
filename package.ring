@@ -5,11 +5,11 @@ aPackageInfo = [
 	:developer = "Mahmoud Fayed",
 	:email = "msfclipper@yahoo.com",
 	:license = "MIT License",
-	:version = "1.0.3",
+	:version = "1.0.4",
 	:ringversion = "1.13",
 	:versions = 	[
 		[
-			:version = "1.0.3",
+			:version = "1.0.4",
 			:branch = "master"
 		]
 	],
@@ -31,7 +31,6 @@ aPackageInfo = [
 		"tools/ring2exe/cleartemp.sh",
 		"tools/ring2exe/cleartemp2.bat",
 		"tools/ring2exe/cleartemp2.sh",
-		"tools/ring2exe/folder2qrc.ring",
 		"tools/ring2exe/README.md",
 		"tools/ring2exe/ring2exe.ring",
 		"tools/ring2exe/test.ring",
