@@ -123,7 +123,7 @@ func Main
 	else 
 		drawline()
 		see "Ring2EXE (Convert Ring Application To Executable File)" + nl
-		see "2017-2020, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
+		see "2017-2021, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
 		see "Usage : ring2exe filename.ring [Options]" + nl
 		drawline()
 	ok
@@ -253,9 +253,14 @@ func GenerateBatchGeneral aPara,aOptions
 	cFileName = aPara[:file]
 	cFile = substr(cFileName," ","_")
 	# Generate Windows Batch (Visual C/C++)
-		cCode = "call "+exefolder()+"../language/src/locatevc.bat" + nl +
+		cBuildtarget = getarch()
+		if cBuildtarget = "unknown"
+			cBuildtarget = "x86"
+		ok
+		cCode = "setlocal" + nl + "call "+exefolder()+"../language/src/locatevc.bat " + cBuildtarget + nl +
 			"#{f3}" + nl +
-			'cl #{f1}.c #{f2} #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5} /OUT:#{f1}.exe' 
+			'cl /O2 #{f1}.c #{f2} #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5} /OUT:#{f1}.exe' + nl +
+			"endlocal" + nl 
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:windows])
 		# Resource File 
@@ -277,14 +282,14 @@ func GenerateBatchGeneral aPara,aOptions
 		cWindowsBatch = cFile+"_buildvc.bat"
 		write(cWindowsBatch,cCode)
 	# Generate Linux Script (GNU C/C++)
-		cCode = 'gcc -rdynamic #{f1}.c -o #{f1} #{f2} -lm -ldl  -I #{f3}/../language/include  '
+		cCode = 'gcc -rdynamic -O2 #{f1}.c -o #{f1} #{f2} -lm -ldl  -I #{f3}/../language/include  '
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:linux])
 		cCode = substr(cCode,"#{f3}",exefolder())
 		cLinuxBatch = cFile+"_buildgcc.sh"
 		write(cLinuxBatch,cCode)
 	# Generate MacOS X Script (CLang C/C++)
-		cCode = 'clang #{f1}.c #{f2} -o #{f1} -lm -ldl  -I #{f3}/../language/include  '
+		cCode = 'clang -O2 #{f1}.c #{f2} -o #{f1} -lm -ldl  -I #{f3}/../language/include  '
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:macosx])
 		cCode = substr(cCode,"#{f3}",exefolder())
