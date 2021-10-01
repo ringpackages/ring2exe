@@ -56,6 +56,7 @@
 		-mobileqt	 : Prepare Qt Project to distribute Ring Application for Mobile 
 		-webassemblyqt	 : Prepare Qt Project to distribute Ring Application for Web using WebAssembly 
 		-noqt	    	 : Remove RingQt from distribution
+		-nolightguilib 	 : Remove RingQt (Light) from distribution
 		-noallegro 	 : Remove RingAllegro from distribution
 		-noopenssl  	 : Remove RingOpenSSL from distribution
 		-nolibcurl  	 : Remove RingLibCurl from distribution
@@ -70,6 +71,7 @@
 		-nomurmurhash    : Remove RingMurmurHash from distribution 
 		-nocruntime	 : Remove C Runtime from distribution
 		-qt	    	 : Add RingQt to distribution
+		-lightguilib	 : Add RingQt (Light) to distribution
 		-allegro 	 : Add RingAllegro to distribution
 		-openssl  	 : Add RingOpenSSL to distribution
 		-libcurl  	 : Add RingLibCurl to distribution
@@ -125,6 +127,17 @@ func Main
 		see "Ring2EXE (Convert Ring Application To Executable File)" + nl
 		see "2017-2021, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
 		see "Usage : ring2exe filename.ring [Options]" + nl
+		drawline()
+		see RemoveTabs("
+		-keep            : Don't delete Temp. Files
+		-static          : Don't use ring.dll/ring.so/ring.dylib
+		-gui             : Build GUI Application (Hide the Console Window)
+		-dist            : Prepare application for distribution 
+		-allruntime      : Include all libraries in distribution
+		-mobileqt        : Prepare Qt Project for Mobile 
+		-webassemblyqt   : Prepare Qt Project for WebAssembly 
+		-<library>       : Include <library> in distribution
+		-no<library>     : Don't include <library> in distribution ")
 		drawline()
 	ok
 
@@ -367,7 +380,7 @@ func DistributeForWindows cBaseFolder,cFileName,aOptions
 					ok
 					if islist(aLibrary[:windowsfiles])
 						for cLibFile in aLibrary[:windowsfiles]
-							OSCopyFile(exefolder()+"\"+cLibFile)
+							custom_OSCopyFile(exefolder(),cLibFile)
 						next
 					ok
 				else 
@@ -385,7 +398,7 @@ func DistributeForWindows cBaseFolder,cFileName,aOptions
 					ok
 					if islist(aLibrary[:windowsfiles])
 						for cLibFile in aLibrary[:windowsfiles]
-							OSCopyFile(exefolder()+"\"+cLibFile)
+							custom_OSCopyFile(exefolder(),cLibFile)
 						next
 					ok
 				ok
@@ -715,17 +728,21 @@ func CheckQtResourceFile cBaseFolder,cFileName,aOptions
 		next
 		for cFile in aFiles 
 			msg("Copy File : " + cFile)
-			cDir = currentdir()
-			cFolder = justfilepath(cFile)
-			if cFolder != ""
-				# Remove last / in the path
-					cFolder = left(cFolder,len(cFolder)-1)
-				OSCreateOpenFolder(cFolder)
-			ok
-			OSCopyFile(cBaseFolder+"/"+cFile)
-			chdir(cDir)
+			custom_OSCopyFile(cBaseFolder,cFile)
 		next
 	ok
+
+func custom_OSCopyFile cBaseFolder,cFile
+	cDir = currentdir()
+	cFolder = justfilepath(cFile)
+	if cFolder != ""
+		# Remove last / in the path
+		cFolder = left(cFolder,len(cFolder)-1)
+		OSCreateOpenFolder(cFolder)
+	ok
+	OSCopyFile(cBaseFolder+"/"+cFile)
+	chdir(cDir)
+
 
 
 func CheckNoCCompiler cBaseFolder,cFileName 
@@ -767,3 +784,15 @@ func CheckNoCCompiler cBaseFolder,cFileName
 	ok
 	OSRenameFile(cFileName+".ringo","ring.ringo")
 	return True
+
+func removeTabs cStr
+	cOutput = ""
+	aList = str2list(cStr)
+	for item in aList
+		if trim(item) = NULL loop ok
+		while left(item,1) = tab
+			item = substr(item,2)
+		end
+		cOutput += item + nl
+	next
+	return cOutput
