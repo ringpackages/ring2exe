@@ -270,9 +270,9 @@ func GenerateBatchGeneral aPara,aOptions
 		if cBuildtarget = "unknown"
 			cBuildtarget = "x86"
 		ok
-		cCode = "setlocal enableextensions enabledelayedexpansion" + nl + "call "+exefolder()+"../language/src/locatevc.bat " + cBuildtarget + nl +
+		cCode = "setlocal enableextensions enabledelayedexpansion" + nl + 'call "'+exefolder()+'../language/src/locatevc.bat" ' + cBuildtarget + nl +
 			"#{f3}" + nl +
-			'cl /O2 #{f1}.c #{f2} #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5} /OUT:#{f1}.exe' + nl +
+			'cl /O2 "#{f1}.c" "#{f2}" #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5}' + nl +
 			"endlocal" + nl 
 		cCode = substr(cCode,"#{f1}",cFile)
 		cCode = substr(cCode,"#{f2}",aPara[:ringlib][:windows])
@@ -373,13 +373,16 @@ func DistributeForWindows cBaseFolder,cFileName,aOptions
 			msg("Copy all libraries to target/windows")	
 			for aLibrary in aLibsInfo 
 				if not find(aOptions,"-no"+aLibrary[:name])
+					msg("Copy library files: "+aLibrary[:title])
 					if islist(aLibrary[:windowsfolders])
 						for cLibFolder in aLibrary[:windowsfolders]
+							msg("Copy folder: "+cLibFolder)
 							OSCopyFolder(exefolder(),cLibFolder)
 						next
 					ok
 					if islist(aLibrary[:windowsfiles])
 						for cLibFile in aLibrary[:windowsfiles]
+							msg("Copy file: "+cLibFile)
 							custom_OSCopyFile(exefolder(),cLibFile)
 						next
 					ok
@@ -393,11 +396,13 @@ func DistributeForWindows cBaseFolder,cFileName,aOptions
 					msg("Add "+aLibrary[:title]+" to target/windows")
 					if islist(aLibrary[:windowsfolders])
 						for cLibFolder in aLibrary[:windowsfolders]
+							msg("Copy folder: "+cLibFolder)
 							OSCopyFolder(exefolder(),cLibFolder)
 						next
 					ok
 					if islist(aLibrary[:windowsfiles])
 						for cLibFile in aLibrary[:windowsfiles]
+							msg("Copy file: "+cLibFile)
 							custom_OSCopyFile(exefolder(),cLibFile)
 						next
 					ok
@@ -444,6 +449,7 @@ func DistributeForLinux cBaseFolder,cFileName,aOptions
 				if not find(aOptions,"-no"+aLibrary[:name])
 					if islist(aLibrary[:linuxfiles])
 						for cLibFile in aLibrary[:linuxfiles]
+							msg("Copy file: "+cLibFile)
 							OSCopyFile(exefolder()+"/../lib/"+cLibFile)					
 							cInstallLibs = InstallLibLinux(cInstallLibs,cLibFile)
 						next
@@ -463,6 +469,7 @@ func DistributeForLinux cBaseFolder,cFileName,aOptions
 					msg("Add "+aLibrary[:title]+" to target/linux/lib")
 					if islist(aLibrary[:linuxfiles])
 						for cLibFile in aLibrary[:linuxfiles]
+							msg("Copy file: "+cLibFile)
 							OSCopyFile(exefolder()+"/lib/"+cLibFile)
 							cInstallLibs = InstallLibLinux(cInstallLibs,cLibFile)
 						next
