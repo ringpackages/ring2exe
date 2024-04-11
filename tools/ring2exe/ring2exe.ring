@@ -125,7 +125,7 @@ func Main
 	else 
 		drawline()
 		see "Ring2EXE (Convert Ring Application To Executable File)" + nl
-		see "2017-2023, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
+		see "2017-2024, Mahmoud Fayed <msfclipper@yahoo.com>" + nl
 		see "Usage : ring2exe filename.ring [Options]" + nl
 		drawline()
 		see RemoveTabs("
@@ -221,8 +221,8 @@ func GenerateCFile cFileName,aOptions
 
 	RingState *pRingState ;
 	pRingState = ring_state_new();	
-	pRingState->argc = argc;
-	pRingState->argv = argv;
+	pRingState->nArgc = argc;
+	pRingState->pArgv = argv;
 	ring_state_runobjectstring(pRingState,(char *) bytecode,"#{f1}");
 	ring_state_delete(pRingState);
 
@@ -270,7 +270,7 @@ func GenerateBatchGeneral aPara,aOptions
 		if cBuildtarget = "unknown"
 			cBuildtarget = "x86"
 		ok
-		cCode = "setlocal enableextensions enabledelayedexpansion" + nl + 'call "'+exefolder()+'../language/src/locatevc.bat" ' + cBuildtarget + nl +
+		cCode = "setlocal enableextensions enabledelayedexpansion" + nl + 'call "'+exefolder()+'../language/build/locatevc.bat" ' + cBuildtarget + nl +
 			"#{f3}" + nl +
 			'cl /O2 "#{f1}.c" "#{f2}" #{f4} -I"#{f6}..\language\include" -I"#{f6}../language/src/" /link #{f5}' + nl +
 			"endlocal" + nl 
@@ -287,9 +287,9 @@ func GenerateBatchGeneral aPara,aOptions
 			ok
 		# GUI Application 
 			if find(aOptions,"-gui")
-				cCode = substr(cCode,"#{f5}",'advapi32.lib shell32.lib /SUBSYSTEM:WINDOWS,"5.01" ')
+				cCode = substr(cCode,"#{f5}",'advapi32.lib shell32.lib /STACK:8388608 /SUBSYSTEM:WINDOWS,"5.01" ')
 			else 
-				cCode = substr(cCode,"#{f5}",' /SUBSYSTEM:CONSOLE,"5.01" ')
+				cCode = substr(cCode,"#{f5}",' /STACK:8388608 /SUBSYSTEM:CONSOLE,"5.01" ')
 			ok
 		cCode = substr(cCode,"#{f6}",exefolder())
 		cWindowsBatch = cFile+"_buildvc.bat"
